@@ -3,11 +3,9 @@ const path = require('path');
 const { clog } = require('./middleware/clog');
 const validatePostRequest  = require('./middleware/postRequestValidator');
 const api = require('./routes/index');
+
 const PORT = process.env.PORT || 3001;
-
 const app = express();
-
-
 
 // Middleware for parsing JSON and urlencoded form data
 app.use(express.json());
@@ -16,7 +14,6 @@ app.use(express.urlencoded({ extended: true }));
 // valiations and logging
 app.use(clog);
 app.use(validatePostRequest);
-
 
 app.use('/api', api);
 app.use(express.static('public'));
