@@ -6,6 +6,27 @@ const {readFromFile,
 const router = express.Router();
 const dbFilePath = './db/db.json';
 
+
+// get success reponse
+const getSuccessResponse = (content) =>  { 
+  return {
+    status: 'success',
+    body: content,
+  };
+}
+
+// get new Note
+const getNewNote = ({title, text}) => {
+  return {
+    title: title,
+    text: text,
+    id: uuid(),
+  };
+};
+
+// ----------------------------------------------------
+// GET
+
 // GET notes
 //  - read the db.json file 
 //  - then return all saved notes as JSON.
@@ -14,6 +35,9 @@ const handleGetRequest = (req, res) => {
     .then((data) => res.json(JSON.parse(data)))
     .catch(console.error);
 };
+
+// ----------------------------------------------------
+// POST
 
 // catch an error if there are no title or text
 const validatePostRequest = (req, res) => {
@@ -31,33 +55,36 @@ const validatePostRequest = (req, res) => {
 const handlePostRequest = (req, res) => {
 
   if (validatePostRequest(req, res)){
-    const { title, text} = req.body;
-    const newNote = {
-        title,
-        text,
-        id: uuid(),
-      };
-
-      readAndAppend(newNote, dbFilePath);
-
-      const response = {
-        status: 'success',
-        body: newNote,
-      };
-      res.json(response)
+    const newNote = getNewNote(req.body);
+    const response = getSuccessResponse(newNote);
+    readAndAppend(newNote, dbFilePath);
+    res.json(response)
   };
 };
 
+// ----------------------------------------------------
+// DELETE
 
+// validate the note id for deletion
+const validateNoteId = (idToDelete, notes, res) => {
+  if (notes.map((note) => note.id).includes(idToDelete)){
+    return true;
+  }
+  res.json(`There is no note with id ${idToDelete}`);
+  return false;
+}
 
-// const validateDeleteRequest = (req, res) => {
-//   if (!req.params){
-//     res.json('A DELETE request must contain the note\'id as parameter');
-//     return false;
-//   }
-//   return true;
-// }
+// delete note if found
+const deleteNoteIfFound = (idToDelete, notes, res) => {
 
+  if (validateNoteId(idToDelete, notes, res)){
+    const noteToDelete = notes.find((note) => note.id === idToDelete);
+    const response = getSuccessResponse(noteToDelete);
+    const newNotes = notes.filter((note) => note.id != idToDelete);
+    writeToFile(dbFilePath, newNotes);    
+    res.json(response);
+  }
+};
 
 // DELETE notes
 // should receive a query parameter that contains the id of a note to delete. 
@@ -70,20 +97,7 @@ const handleDeleteRequest = (req, res) => {
 
   readFromFile(dbFilePath)
     .then(JSON.parse)
-    .then((notes) => {
-      const noteToDelete = notes.find((note) => note.id === idToDelete);
-      if (!noteToDelete){
-        res.json(`There is no note with id ${idToDelete}`);
-      } else {
-        const response = {
-          status: 'success',
-          body: noteToDelete,
-        };
-        res.json(response);
-        return notes.filter((note) => note.id != idToDelete);
-      }
-    })
-    .then((newNotes) => {writeToFile(dbFilePath, newNotes)})
+    .then((notes) => {deleteNoteIfFound(idToDelete, notes, res)})
     .catch(console.error)
 };
 
