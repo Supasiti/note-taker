@@ -1,39 +1,7 @@
 const express = require('express');
-const fs = require('fs');
-const util = require('util');
+const uuid = require('../src/uuid');
+const {readFromFile, readAndAppend} = require('../src/fsUtils');
 const router = express.Router();
-
-// ----------
-// fs util
-
-//  read from file
-const readFromFile = util.promisify(fs.readFile);
-
-// write to file
-const writeToFile = (filePath, content) => {
-  const toWrite = JSON.stringify(content, null, 2);
-
-  fs.writeFile(filePath, toWrite, (err) =>
-    err ? console.error(err) : console.info(`\nData written to ${filePath}`)
-  );
-};
-
-// read and append
-const readAndAppend = (toAppend, filePath) => {
-  readFromFile(filePath)
-    .then(JSON.parse)
-    .then((current) => {return [...current, toAppend]})
-    .then((newContent) => {writeToFile(filePath, newContent)})
-    .catch(console.error)
-};
-
-// uuid
-// generates a string of random numbers and letters
-const uuid = () =>
-  Math.floor((1 + Math.random()) * 0x10000)
-    .toString(16)
-    .substring(1);
-
 
 // GET notes
 //  - read the db.json file 
