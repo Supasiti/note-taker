@@ -44,14 +44,14 @@ const handleGetRequest = (req, res) => {
     .catch(console.error);
 };
 
-
-
-// const validatePostRequest = (req, res) => {
-//   // error if there is no body
-//     if (!req.body) {
-//       res.json('the body of POST request cannot be empty');
-//     }
-// };
+// catch an error if there are no title or text
+const validatePostRequest = (req, res) => {
+  if (!req.body.title || !req.body.text){
+    res.json('the body of POST request must contain both title and text');
+    return false;
+  }
+  return true;
+}
 
 // POST notes
 //  - should receive a new note to save on the request body, 
@@ -59,25 +59,22 @@ const handleGetRequest = (req, res) => {
 //  - then return the new note to the client. 
 const handlePostRequest = (req, res) => {
 
-  
-  const {title, text} = req.body;
+  if (validatePostRequest(req, res)){
+    const { title, text} = req.body;
+    const newNote = {
+        title,
+        text,
+        id: uuid(),
+      };
 
-  // error if there are no title or text
-  if (!title || !text){res.json('the body of POST request must contain both title and text');}
+      readAndAppend(newNote, './db/db.json');
 
-  const newNote = {
-    title,
-    text,
-    id: uuid(),
+      const response = {
+        status: 'success',
+        body: newNote,
+      };
+      res.json(response)
   };
-
-  readAndAppend(newNote, './db/db.json');
-
-  const response = {
-    status: 'success',
-    body: newNote,
-  };
-  res.json(response)
 };
 
 
