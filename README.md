@@ -19,7 +19,7 @@ A web app that keeps track of all your notes. A user can write and save their ow
 
 The end product should resemble the mock-up provided below:
 
-[![note taker screenshot](./demo/screenshot-home.png)](http://supa-note-taker.herokuapp.com)
+[![note taker screenshot](./demo/screenshot-home.png)](https://supa-note-taker.herokuapp.com)
 
 ![notes screenshot](./demo/screenshot-notes.png)
 
@@ -47,7 +47,7 @@ Then install all the required libraries by running the follow command
 ## <h2 id="usage"> Usage </h2>
 [(Back to top)](#table-of-content)
 
-The deployed application can found [here](http://supa-note-taker.herokuapp.com).
+The deployed application can found [here](https://supa-note-taker.herokuapp.com).
 
 
 ## <h2 id="license"> License </h2>
