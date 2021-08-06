@@ -14,18 +14,7 @@ const writeToFile = (filePath, content) => {
   );
 };
 
-// read and append
-const readAndAppend = (toAppend, filePath) => {
-  readFromFile(filePath)
-    .then(JSON.parse)
-    .then((current) => {return [...current, toAppend]})
-    .then((newContent) => {writeToFile(filePath, newContent)})
-    .catch(console.error)
-};
-
-
 module.exports = {
   readFromFile,
-  writeToFile,
-  readAndAppend
+  writeToFile
 }

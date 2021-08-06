@@ -1,8 +1,7 @@
 const express = require('express');
 const {readFromFile, 
-  writeToFile, 
-  readAndAppend} = require('../src/fsUtils');
-const { noteFactory } = require('../src/notes');
+  writeToFile} = require('../src/fsUtils');
+const { noteFactory, appendToNotes, getNotesFromDb } = require('../src/notes');
 
 const router = express.Router();
 const dbFilePath = './db/db.json';
@@ -16,17 +15,16 @@ const getSuccessResponse = (content) =>  {
   };
 }
 
-
 // ----------------------------------------------------
 // GET
-
-// GET notes
 //  - read the db.json file 
 //  - then return all saved notes as JSON.
 const handleGetRequest = (req, res) => { 
-  readFromFile(dbFilePath)
-    .then((data) => res.json(JSON.parse(data)))
-    .catch(console.error);
+  // readFromFile(dbFilePath)
+  //   .then((data) => res.json(JSON.parse(data)))
+  //   .catch(console.error);
+  getNotesFromDb().then((notes) => res.json(notes)).catch(console.error);
+  // res.json('get request received');
 };
 
 // ----------------------------------------------------
@@ -38,16 +36,22 @@ const validatePostRequest = (req) => {
   return true;
 }
 
-// POST notes
-//  - should receive a new note to save on the request body, 
-//  - add it to the db.json file, 
-//  - then return the new note to the client. 
+// read and append notes
+const readAndAppend = (filePath, newNote) => {
+  readFromFile(dbFilePath)
+    .then(JSON.parse)
+    .then((current) => appendToNotes(aNote, current))
+    .then((newNotes) => {writeToFile(dbFilePath, newNotes)})
+    .catch(console.error)
+};
+
+// POST 
 const handlePostRequest = (req, res) => {
 
   if (validatePostRequest(req)){
     const aNote = noteFactory(req.body);
     const response = getSuccessResponse(aNote);
-    readAndAppend(aNote, dbFilePath); 
+    readAndAppend(dbFilePath, aNote);
     res.json(response)
   };
   res.json('The body of POST request must contain both title and text');
