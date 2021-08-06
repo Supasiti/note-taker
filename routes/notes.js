@@ -1,13 +1,13 @@
 const express = require('express');
-const uuid = require('../src/uuid');
-const {readFromFile, 
-  writeToFile, 
-  readAndAppend} = require('../src/fsUtils');
+const { 
+  noteFactory, 
+  appendNoteToDb, 
+  getNotesFromDb, 
+  deleteNoteFromDb } = require('../src/notes');
+
 const router = express.Router();
-const dbFilePath = './db/db.json';
 
-
-// get success reponse
+// get success response
 const getSuccessResponse = (content) =>  { 
   return {
     status: 'success',
@@ -15,89 +15,65 @@ const getSuccessResponse = (content) =>  {
   };
 }
 
-// get new Note
-const getNewNote = ({title, text}) => {
+// get fail response
+const getFailResponse = (message) =>  { 
   return {
-    title: title,
-    text: text,
-    id: uuid(),
+    status: 'fail',
+    message: message
   };
-};
+}
 
 // ----------------------------------------------------
 // GET
-
-// GET notes
-//  - read the db.json file 
-//  - then return all saved notes as JSON.
 const handleGetRequest = (req, res) => { 
-  readFromFile(dbFilePath)
-    .then((data) => res.json(JSON.parse(data)))
+  getNotesFromDb()
+    .then((notes) => res.json(notes))
     .catch(console.error);
 };
 
 // ----------------------------------------------------
 // POST
 
-// catch an error if there are no title or text
+// check if there are missing title or text
 const validatePostRequest = (req, res) => {
-  if (!req.body.title || !req.body.text){
-    res.json('The body of POST request must contain both title and text');
+  if (!req.body.title || !req.body.text) {
+    const response = getFailResponse('The body of POST request must contain both title and text')
+    res.json(response);
     return false;
   }
   return true;
+};
+
+// create a new note and append to database
+const createAndAddNote = (req, res) => {
+  const aNote = noteFactory(req.body);
+  const response = getSuccessResponse(aNote);
+  appendNoteToDb(aNote);
+  res.json(response)
 }
 
-// POST notes
-//  - should receive a new note to save on the request body, 
-//  - add it to the db.json file, 
-//  - then return the new note to the client. 
+// POST 
 const handlePostRequest = (req, res) => {
-
-  if (validatePostRequest(req, res)){
-    const newNote = getNewNote(req.body);
-    const response = getSuccessResponse(newNote);
-    readAndAppend(newNote, dbFilePath);
-    res.json(response)
-  };
+  if (validatePostRequest(req, res)) createAndAddNote(req,res);
 };
 
 // ----------------------------------------------------
 // DELETE
 
-// validate the note id for deletion
-const validateNoteId = (idToDelete, notes, res) => {
-  if (notes.map((note) => note.id).includes(idToDelete)){
-    return true;
-  }
-  res.json(`There is no note with id ${idToDelete}`);
-  return false;
+//  get delete response
+const getDeleteResponse = (content, idToDelete) => {
+  return content !== undefined? 
+    getSuccessResponse(content) : 
+    getFailResponse(`There is no note with id ${idToDelete}`);
 }
 
-// delete note if found
-const deleteNoteIfFound = (idToDelete, notes, res) => {
-
-  if (validateNoteId(idToDelete, notes, res)){
-    const noteToDelete = notes.find((note) => note.id === idToDelete);
-    const response = getSuccessResponse(noteToDelete);
-    const newNotes = notes.filter((note) => note.id != idToDelete);
-    writeToFile(dbFilePath, newNotes);    
-    res.json(response);
-  }
-};
-
-// DELETE notes
-// should receive a query parameter that contains the id of a note to delete. 
-// remove the note with the given id property, 
-// and then rewrite the notes to the db.json file
-// will send a response containing the deleted note
+// DELETE 
 const handleDeleteRequest = (req, res) => {
-  //  assume that an id is included
-  const idToDelete = req.params.id;
+  const idToDelete = req.params.id;  //  assume that an id is included
 
-  readFromFile(dbFilePath)
-    .then(JSON.parse)
-    .then((notes) => {deleteNoteIfFound(idToDelete, notes, res)})
+  deleteNoteFromDb(idToDelete)
+    .then((deleted) => getDeleteResponse(deleted, idToDelete))
+    .then((response) => res.json(response))
     .catch(console.error)
 };
 
