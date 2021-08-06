@@ -1,7 +1,7 @@
 const express = require('express');
 const {readFromFile, 
   writeToFile} = require('../src/fsUtils');
-const { noteFactory, appendToNotes, getNotesFromDb } = require('../src/notes');
+const { noteFactory, appendNoteToDb, getNotesFromDb } = require('../src/notes');
 
 const router = express.Router();
 const dbFilePath = './db/db.json';
@@ -17,44 +17,35 @@ const getSuccessResponse = (content) =>  {
 
 // ----------------------------------------------------
 // GET
-//  - read the db.json file 
-//  - then return all saved notes as JSON.
 const handleGetRequest = (req, res) => { 
-  // readFromFile(dbFilePath)
-  //   .then((data) => res.json(JSON.parse(data)))
-  //   .catch(console.error);
-  getNotesFromDb().then((notes) => res.json(notes)).catch(console.error);
-  // res.json('get request received');
+  getNotesFromDb()
+    .then((notes) => res.json(notes))
+    .catch(console.error);
 };
 
 // ----------------------------------------------------
 // POST
 
-// catch an error if there are no title or text
-const validatePostRequest = (req) => {
-  if (!req.body.title || !req.body.text) return false;
+// check if there are missing title or text
+const validatePostRequest = (req, res) => {
+  if (!req.body.title || !req.body.text) {
+    res.json('The body of POST request must contain both title and text');
+    return false;
+  }
   return true;
-}
-
-// read and append notes
-const readAndAppend = (filePath, newNote) => {
-  readFromFile(dbFilePath)
-    .then(JSON.parse)
-    .then((current) => appendToNotes(aNote, current))
-    .then((newNotes) => {writeToFile(dbFilePath, newNotes)})
-    .catch(console.error)
 };
+
+// create a new note and append to database
+const createAndAddNote = (req, res) => {
+  const aNote = noteFactory(req.body);
+  const response = getSuccessResponse(aNote);
+  appendNoteToDb(aNote);
+  res.json(response)
+}
 
 // POST 
 const handlePostRequest = (req, res) => {
-
-  if (validatePostRequest(req)){
-    const aNote = noteFactory(req.body);
-    const response = getSuccessResponse(aNote);
-    readAndAppend(dbFilePath, aNote);
-    res.json(response)
-  };
-  res.json('The body of POST request must contain both title and text');
+  if (validatePostRequest(req, res)) createAndAddNote(req,res);
 };
 
 // ----------------------------------------------------

@@ -19,18 +19,25 @@ const appendToNotes = (newNote, currentNotes) => [...currentNotes, newNote];
 // ------------------------
 // Interact with database
 
-// get All Notes From Database
+// get all notes from database
 const getNotesFromDb = () => {
   return readFromFile(dbFilePath)
     .then(JSON.parse)
     .catch(console.error)
 }
 
+//  append new note to database
+const appendNoteToDb = (newNote) => {
+  return getNotesFromDb()
+    .then((current) => appendToNotes(newNote, current))
+    .then((newNotes) => {writeToFile(dbFilePath, newNotes)})
+    .catch(console.error)
+}
 
 
 
 module.exports = {
   noteFactory,
-  appendToNotes,
-  getNotesFromDb
+  getNotesFromDb,
+  appendNoteToDb
 }
