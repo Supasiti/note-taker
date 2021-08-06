@@ -29,6 +29,7 @@ The end product should resemble the mock-up provided below:
 - [Description](#description)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Tests](#tests)
 - [License](#license)
 
 
@@ -48,6 +49,18 @@ Then install all the required libraries by running the follow command
 [(Back to top)](#table-of-content)
 
 The deployed application can found [here](https://supa-note-taker.herokuapp.com).
+
+
+## <h2 id="tests"> Tests </h2>
+[(Back to top)](#table-of-content)
+
+This project uses [Jest](https://jestjs.io) testing framework. This can be set up by running the following command:
+
+    npm i --save-dev
+
+Once the framework is downloaded, To test, run
+
+    npm run test
 
 
 ## <h2 id="license"> License </h2>
