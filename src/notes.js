@@ -15,7 +15,6 @@ const noteFactory = ({title, text}) => {
 // append the note
 const appendToNotes = (newNote, currentNotes) => [...currentNotes, newNote];
 
-
 // ------------------------
 // Interact with database
 
@@ -34,10 +33,26 @@ const appendNoteToDb = (newNote) => {
     .catch(console.error)
 }
 
+// return undefined if it can't find a note in a database otherwise it returns the deleted
+// note and update the database 
+const deleteNoteFromDbIfExists = (idToDelete, currentNotes) => {
+  const deleted = currentNotes.find((note) => note.id === idToDelete);
+  const newNotes = currentNotes.filter((note) => note.id != idToDelete);
+  if (deleted) writeToFile(dbFilePath, newNotes);
+  return deleted;
+};
+
+// delete note from a database if it exists
+const deleteNoteFromDb = (id) => {
+  return getNotesFromDb()
+    .then((notes) => deleteNoteFromDbIfExists(id, notes))
+    .catch(console.error)
+};
 
 
 module.exports = {
   noteFactory,
   getNotesFromDb,
-  appendNoteToDb
+  appendNoteToDb,
+  deleteNoteFromDb
 }
