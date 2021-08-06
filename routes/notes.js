@@ -1,8 +1,9 @@
 const express = require('express');
-const uuid = require('../src/uuid');
 const {readFromFile, 
   writeToFile, 
   readAndAppend} = require('../src/fsUtils');
+const { noteFactory } = require('../src/notes');
+
 const router = express.Router();
 const dbFilePath = './db/db.json';
 
@@ -15,14 +16,6 @@ const getSuccessResponse = (content) =>  {
   };
 }
 
-// get new Note
-const getNewNote = ({title, text}) => {
-  return {
-    title: title,
-    text: text,
-    id: uuid(),
-  };
-};
 
 // ----------------------------------------------------
 // GET
@@ -40,11 +33,8 @@ const handleGetRequest = (req, res) => {
 // POST
 
 // catch an error if there are no title or text
-const validatePostRequest = (req, res) => {
-  if (!req.body.title || !req.body.text){
-    res.json('The body of POST request must contain both title and text');
-    return false;
-  }
+const validatePostRequest = (req) => {
+  if (!req.body.title || !req.body.text) return false;
   return true;
 }
 
@@ -54,12 +44,13 @@ const validatePostRequest = (req, res) => {
 //  - then return the new note to the client. 
 const handlePostRequest = (req, res) => {
 
-  if (validatePostRequest(req, res)){
-    const newNote = getNewNote(req.body);
-    const response = getSuccessResponse(newNote);
-    readAndAppend(newNote, dbFilePath);
+  if (validatePostRequest(req)){
+    const aNote = noteFactory(req.body);
+    const response = getSuccessResponse(aNote);
+    readAndAppend(aNote, dbFilePath); 
     res.json(response)
   };
+  res.json('The body of POST request must contain both title and text');
 };
 
 // ----------------------------------------------------
